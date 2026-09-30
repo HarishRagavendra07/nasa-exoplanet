@@ -37,6 +37,13 @@ function SortButtons({ column, label, sort, onSort }) {
 export default function ResultsTable({ rows, ids, searchMs, sort, onSort }) {
   // App remounts this table for each new search, so paging starts over then but survives re-sorting
   const [limit, setLimit] = useState(PAGE);
+  const [copied, setCopied] = useState(false);
+
+  const copyLink = () =>
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
 
   if (ids === null) {
     return (
@@ -54,10 +61,15 @@ export default function ResultsTable({ rows, ids, searchMs, sort, onSort }) {
     <section className="panel results-panel" aria-labelledby="results-heading">
       <div className="results-header">
         <h2 id="results-heading">Results</h2>
-        <span className="muted" aria-live="polite">
-          {ids.length.toLocaleString()} {ids.length === 1 ? 'planet' : 'planets'} found in{' '}
-          {searchMs < 1 ? '<1' : searchMs.toFixed(1)} ms
-        </span>
+        <div className="results-meta">
+          <span className="muted" aria-live="polite">
+            {ids.length.toLocaleString()} {ids.length === 1 ? 'planet' : 'planets'} found in{' '}
+            {searchMs < 1 ? '<1' : searchMs.toFixed(1)} ms
+          </span>
+          <button type="button" className="btn btn-small" onClick={copyLink} title="Copy a link to this search">
+            {copied ? 'Link copied ✓' : 'Copy link'}
+          </button>
+        </div>
       </div>
 
       {ids.length === 0 ? (

@@ -90,6 +90,9 @@ button, input, select { font: inherit; color: inherit; }
 .results-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
 .results-header h2 { margin: 0; }
 .muted { color: var(--muted); font-size: 14px; }
+.results-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.btn-small { padding: 5px 12px; font-size: 13px; background: transparent; border-color: var(--border); }
+.btn-small:hover { background: var(--accent-soft); }
 .empty-state { text-align: center; color: var(--muted); }
 .empty-state p { margin: 6px 0; }
 

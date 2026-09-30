@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { buildIndex, fieldOptions, search, sortIds, QUERY_FIELDS } from './query';
 import QueryPanel from './components/QueryPanel';
 import ResultsTable from './components/ResultsTable';
+import { toSearch, fromSearch } from './url-state';
 
 const EMPTY = { year: '', method: '', host: '', facility: '' };
 
@@ -14,6 +15,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [sort, setSort] = useState(null); // { column, direction }
   const [searchId, setSearchId] = useState(0); // new table state (e.g. paging) per search, not per sort
+  const [lastQuery, setLastQuery] = useState(EMPTY); // the criteria behind the current results
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}planets.json`)
@@ -42,8 +44,16 @@ export default function App() {
     [results, sort, data]
   );
 
-  const runSearch = () => {
-    const query = { ...criteria };
+  // mode: 'push' adds a browser history entry, 'replace' updates it, null leaves the URL alone
+  const writeUrl = (query, sortValue, mode) => {
+    if (!mode) return;
+    const url = toSearch(query, sortValue) || window.location.pathname;
+    if (url === window.location.search) return;
+    window.history[mode === 'push' ? 'pushState' : 'replaceState'](null, '', url);
+  };
+
+  const runSearch = (input = criteria, { sortValue = sort, history = 'push' } = {}) => {
+    const query = { ...EMPTY, ...input };
     if (query.host) {
       const host = hostsByLowercase.get(query.host.trim().toLowerCase());
       if (!host) {
@@ -51,8 +61,8 @@ export default function App() {
         return;
       }
       query.host = host;
-      setCriteria(query);
     }
+    setCriteria(query);
     const start = performance.now();
     const ids = search(data.rows, index, query);
     const elapsed = performance.now() - start;
@@ -64,14 +74,37 @@ export default function App() {
     setResults(ids);
     setSearchMs(elapsed);
     setSearchId((n) => n + 1);
+    setLastQuery(query);
+    writeUrl(query, sortValue, history);
   };
 
-  const clear = () => {
+  const clear = ({ history = 'push' } = {}) => {
     setCriteria(EMPTY);
     setResults(null);
     setError('');
     setSort(null);
+    setLastQuery(EMPTY);
+    writeUrl(EMPTY, null, history);
   };
+
+  const changeSort = (next) => {
+    setSort(next);
+    writeUrl(lastQuery, next, 'replace');
+  };
+
+  // Open a shared link, and follow Back/Forward between searches
+  useEffect(() => {
+    if (!index) return;
+    const applyUrl = () => {
+      const { criteria: fromUrl, sort: sortFromUrl, hasCriteria } = fromSearch(window.location.search);
+      setSort(sortFromUrl);
+      if (hasCriteria) runSearch(fromUrl, { sortValue: sortFromUrl, history: null });
+      else clear({ history: null });
+    };
+    applyUrl();
+    window.addEventListener('popstate', applyUrl);
+    return () => window.removeEventListener('popstate', applyUrl);
+  }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="page">
@@ -106,11 +139,11 @@ export default function App() {
               criteria={criteria}
               options={options}
               onChange={(key, value) => setCriteria((c) => ({ ...c, [key]: value }))}
-              onSearch={runSearch}
-              onClear={clear}
+              onSearch={() => runSearch()}
+              onClear={() => clear()}
               error={error}
             />
-            <ResultsTable key={searchId} rows={data.rows} ids={sortedResults} searchMs={searchMs} sort={sort} onSort={setSort} />
+            <ResultsTable key={searchId} rows={data.rows} ids={sortedResults} searchMs={searchMs} sort={sort} onSort={changeSort} />
           </>
         )}
       </main>
