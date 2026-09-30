@@ -13,6 +13,7 @@ export default function App() {
   const [searchMs, setSearchMs] = useState(0);
   const [error, setError] = useState('');
   const [sort, setSort] = useState(null); // { column, direction }
+  const [searchId, setSearchId] = useState(0); // new table state (e.g. paging) per search, not per sort
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}planets.json`)
@@ -62,6 +63,7 @@ export default function App() {
     setError('');
     setResults(ids);
     setSearchMs(elapsed);
+    setSearchId((n) => n + 1);
   };
 
   const clear = () => {
@@ -108,7 +110,7 @@ export default function App() {
               onClear={clear}
               error={error}
             />
-            <ResultsTable rows={data.rows} ids={sortedResults} searchMs={searchMs} sort={sort} onSort={setSort} />
+            <ResultsTable key={searchId} rows={data.rows} ids={sortedResults} searchMs={searchMs} sort={sort} onSort={setSort} />
           </>
         )}
       </main>

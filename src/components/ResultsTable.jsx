@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { COL, overviewUrl } from '../query';
 
 const PAGE = 100;
@@ -35,8 +35,8 @@ function SortButtons({ column, label, sort, onSort }) {
 }
 
 export default function ResultsTable({ rows, ids, searchMs, sort, onSort }) {
+  // App remounts this table for each new search, so paging starts over then but survives re-sorting
   const [limit, setLimit] = useState(PAGE);
-  useEffect(() => setLimit(PAGE), [ids]);
 
   if (ids === null) {
     return (
