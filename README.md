@@ -19,6 +19,7 @@ Built with React and Vite as a static site: no backend, and it runs on GitHub Pa
 **Extras**
 - The host name field filters as you type, since 4,779 hosts are too many for a plain dropdown. It's case-insensitive (`trappist-1` finds `TRAPPIST-1`).
 - Results show 100 at a time with a "Show more" button, plus the match count and search time.
+- **CSV export:** **Download CSV** saves every matching planet (not just the rows on screen) in the current sort order.
 - **Shareable searches:** the query and sort order live in the URL (e.g. `?year=2016&method=Transit&sort=year-desc`), so a search can be bookmarked or shared with **Copy link**, and Back/Forward move between searches.
 - Dark/light mode that follows your system, a mobile layout, and accessible labels and sort states.
 
@@ -62,6 +63,7 @@ scripts/fetch-data.mjs     download + parse NASA CSV → public/planets.json
 src/csv.js                 small RFC 4180 CSV parser
 src/query.js               index, search, sort (pure functions, unit-tested)
 src/url-state.js           search <-> URL query string
+src/export.js              CSV export
 src/App.jsx                data loading and state
 src/components/            QueryPanel, ResultsTable
 test/query.test.js         unit tests, including a check against the real data

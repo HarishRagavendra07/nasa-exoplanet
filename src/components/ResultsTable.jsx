@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { COL, overviewUrl } from '../query';
+import { toCsv, csvFilename } from '../export';
 
 const PAGE = 100;
 const COLUMNS = [
@@ -34,10 +35,18 @@ function SortButtons({ column, label, sort, onSort }) {
   );
 }
 
-export default function ResultsTable({ rows, ids, searchMs, sort, onSort }) {
+export default function ResultsTable({ rows, ids, query, searchMs, sort, onSort }) {
   // App remounts this table for each new search, so paging starts over then but survives re-sorting
   const [limit, setLimit] = useState(PAGE);
   const [copied, setCopied] = useState(false);
+
+  // Exports every matching planet in the current sort order, not just the rows shown
+  const downloadCsv = () => {
+    const url = URL.createObjectURL(new Blob([toCsv(rows, ids)], { type: 'text/csv;charset=utf-8' }));
+    const link = Object.assign(document.createElement('a'), { href: url, download: csvFilename(query) });
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const copyLink = () =>
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -66,6 +75,11 @@ export default function ResultsTable({ rows, ids, searchMs, sort, onSort }) {
             {ids.length.toLocaleString()} {ids.length === 1 ? 'planet' : 'planets'} found in{' '}
             {searchMs < 1 ? '<1' : searchMs.toFixed(1)} ms
           </span>
+          {ids.length > 0 && (
+            <button type="button" className="btn btn-small" onClick={downloadCsv} title="Download all results as CSV">
+              Download CSV
+            </button>
+          )}
           <button type="button" className="btn btn-small" onClick={copyLink} title="Copy a link to this search">
             {copied ? 'Link copied ✓' : 'Copy link'}
           </button>

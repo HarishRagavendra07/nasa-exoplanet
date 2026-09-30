@@ -143,7 +143,7 @@ export default function App() {
               onClear={() => clear()}
               error={error}
             />
-            <ResultsTable key={searchId} rows={data.rows} ids={sortedResults} searchMs={searchMs} sort={sort} onSort={changeSort} />
+            <ResultsTable key={searchId} rows={data.rows} ids={sortedResults} query={lastQuery} searchMs={searchMs} sort={sort} onSort={changeSort} />
           </>
         )}
       </main>
